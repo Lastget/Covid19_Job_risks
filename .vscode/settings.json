@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": ".venv/bin/python",
+    "git.ignoreLimitWarning": true,
+    "python.analysis.cacheFolderPath": "/Library/Frameworks/Python.framework/Versions/3.8/bin/python3"
+}

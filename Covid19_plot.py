@@ -9,7 +9,7 @@ from bokeh.models import HoverTool, Label, LabelSet
 from bokeh.io import curdoc
 from bokeh.layouts import row
 from bokeh.models.renderers import GlyphRenderer
-
+from math import pi
 # Improt files
 expose = pd.read_csv(r'/Users/richardtsai/Documents/DataScience/Covid19_job_risks/Exposed_to_Disease_or_Infections.csv',encoding='gbk')
 expose.head() #context, code, occupation 
@@ -41,34 +41,53 @@ full_table.info()
 
 # Start plotting 
 source = ColumnDataSource(full_table) 
-p = figure(title="各職業之新型冠狀病毒之風險圖", x_axis_label='暴露疾病頻率', y_axis_label='與人接近距離')
-p.circle('Expose_frequency',
-           'Physical_proximity', name = 'allcircle',
-            size=10,fill_alpha=0.2, source=source, fill_color='gray', hover_fill_color='firebrick', hover_line_color="firebrick", line_color=None)
+p = figure(title="各職業對新型冠狀病毒之風險圖", x_axis_label='工作時與人接近程度', y_axis_label='工作時暴露於疾病頻率',
+          plot_width=900, plot_height=600)
+p.circle('Physical_proximity','Expose_frequency',
+          name = 'allcircle',
+          size=10,fill_alpha=0.2, source=source, fill_color='gray', hover_fill_color='firebrick', hover_line_color="firebrick", line_color=None)
 hover = HoverTool(tooltips=[('職業','@TW_Occupation'),('Occupation','@Occupation'),('暴露於疾病指數','@Expose_frequency'),('與人接近距離指數','@Physical_proximity')])
 p.add_tools(hover)
 
+p.xaxis.ticker = [0, 25, 50,75,100]
+p.xaxis.major_label_overrides = {0:'獨自工作(0)',25: '不近(25)', 50: '稍微近(50)', 75: '中等距離(75)', 100:'非常近(100)'}
+p.yaxis.ticker = [0, 25, 50,75,100]
+p.yaxis.major_label_overrides = {0:'從不(0)',25: '一年一次(25)', 50: '一個月一次(50)', 75: '一週一次(75)', 100:'每天(100)'}
+p.yaxis.major_label_orientation = pi/4
+
+# remove tool bar 
+p.toolbar.logo = None
+p.toolbar_location = None
+
+def remove_glyphs(figure, glyph_name_list):
+    renderers = figure.select(dict(type=GlyphRenderer))
+    for r in renderers:
+        if r.name in glyph_name_list:
+            col = r.glyph.y
+            r.data_source.data[col] = [np.nan] * len(r.data_source.data[col])
+
+
 # Define a callback function 
 def update_plot(attr, old, new):
-
+       remove_glyphs(p,['point_select'])
        old_choice=full_table[full_table['TW_Occupation']==old]  
-       p.circle(old_choice['Expose_frequency'],old_choice['Physical_proximity'],size=10,fill_alpha=1,fill_color='Gray', line_color=None )
-       
+
        choice=full_table[full_table['TW_Occupation']==new]
-       a=choice['Expose_frequency']
-       b=choice['Physical_proximity']
-       p.circle(a,b,size=10,fill_alpha=1,fill_color='blue' )
+       a=choice['Physical_proximity']
+       b=choice['Expose_frequency']
+       p.circle(a,b,size=10,fill_alpha=1,fill_color=None,line_color="firebrick", name='point_select')
        
-       citation=Label(x=choice.Expose_frequency.item()+0.5,y=choice.Physical_proximity.item()+0.5, 
-            text=choice.TW_Occupation.item(), 
-            border_line_color=None, border_line_alpha=1.0,
-            background_fill_color=None, background_fill_alpha=0,
-            text_font_size="8pt", text_align="center")
+
+       #citation=Label(x=choice.Expose_frequency.item()+0.5,y=choice.Physical_proximity.item()+0.5, 
+       #     text=choice.TW_Occupation.item(), 
+       #     border_line_color=None, border_line_alpha=1.0,
+       #     background_fill_color=None, background_fill_alpha=0,
+       #     text_font_size="8pt", text_align="center")
  
-       p.add_layout(citation) 
+       #p.add_layout(citation) 
 
 # Add Select 
-select = Select(title='Occupation', options=full_table['TW_Occupation'].tolist(), value='')
+select = Select(title='請選擇工作', options=sorted(full_table['TW_Occupation'].tolist()), value='')
 
 # Attach the update_plot callback to the 'value' property of select
 select.on_change('value', update_plot)
@@ -78,4 +97,3 @@ layout = row(p, select)
 
 # Add the plot to the current document
 curdoc().add_root(layout)
-

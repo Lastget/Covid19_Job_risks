@@ -10,16 +10,18 @@ from bokeh.io import curdoc
 from bokeh.layouts import row
 from bokeh.models.renderers import GlyphRenderer
 from math import pi
+from bokeh.models import FixedTicker
+
 # Improt files
-expose = pd.read_csv(r'/Users/richardtsai/Documents/DataScience/Covid19_job_risks/Exposed_to_Disease_or_Infections.csv',encoding='gbk')
+expose = pd.read_csv(r'Exposed_to_Disease_or_Infections.csv',encoding='gbk')
 expose.head() #context, code, occupation 
 expose.shape #(968,3)
 
-physical = pd.read_csv('/Users/richardtsai/Documents/DataScience/Covid19_job_risks/Physical_Proximity.csv')
+physical = pd.read_csv('Physical_Proximity.csv')
 physical.head()
 physical.shape #(967,3)
 
-TW_job = pd.read_excel('/Users/richardtsai/Documents/DataScience/Covid19_Job_risks/Small_Chinese.xlsx',encoding='utf-8')
+TW_job = pd.read_excel('Small_Chinese.xlsx',encoding='utf-8')
 TW_job.shape #(968,3)
 TW_job = TW_job.iloc[:,:2]
 TW_job.head()
@@ -49,10 +51,10 @@ p.circle('Physical_proximity','Expose_frequency',
 hover = HoverTool(tooltips=[('職業','@TW_Occupation'),('Occupation','@Occupation'),('暴露於疾病指數','@Expose_frequency'),('與人接近距離指數','@Physical_proximity')])
 p.add_tools(hover)
 
-p.xaxis.ticker = [0, 25, 50,75,100]
-p.xaxis.major_label_overrides = {0:'獨自工作(0)',25: '不近(25)', 50: '稍微近(50)', 75: '中等距離(75)', 100:'非常近(100)'}
-p.yaxis.ticker = [0, 25, 50,75,100]
-p.yaxis.major_label_overrides = {0:'從不(0)',25: '一年一次(25)', 50: '一個月一次(50)', 75: '一週一次(75)', 100:'每天(100)'}
+p.xaxis.ticker = FixedTicker(ticks=[0, 25, 50,75,100])
+#p.xaxis.major_label_overrides = {0:'獨自工作(0)',25: '不近(25)', 50: '稍微近(50)', 75: '中等距離(75)', 100:'非常近(100)'}
+p.yaxis.ticker = FixedTicker(ticks=[0, 25, 50,75,100])
+#p.yaxis.major_label_overrides = {0:'從不(0)',25: '一年一次(25)', 50: '一個月一次(50)', 75: '一週一次(75)', 100:'每天(100)'}
 p.yaxis.major_label_orientation = pi/4
 
 # remove tool bar 
